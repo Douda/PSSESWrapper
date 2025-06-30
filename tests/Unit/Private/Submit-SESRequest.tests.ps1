@@ -187,7 +187,7 @@ Describe 'Submit-SESRequest' -Tag 'Private' {
             Mock -CommandName 'Invoke-SESWebRequest' -MockWith {
                 $exception = [System.Net.WebException]::new('Server error')
                 $response = [PSCustomObject]@{ StatusCode = 503 }
-                $exception | Add-Member -MemberType NoteProperty -Name 'Response' -Value $response
+                $exception | Add-Member -MemberType NoteProperty -Name 'Response' -Value $response -Force
                 throw $exception
             } -ModuleName $script:dscModuleName
 
@@ -202,7 +202,7 @@ Describe 'Submit-SESRequest' -Tag 'Private' {
             Mock -CommandName 'Invoke-SESWebRequest' -MockWith {
                 $exception = [System.Net.WebException]::new('Client error')
                 $response = [PSCustomObject]@{ StatusCode = 400 }
-                $exception | Add-Member -MemberType NoteProperty -Name 'Response' -Value $response
+                $exception | Add-Member -MemberType NoteProperty -Name 'Response' -Value $response -Force
                 throw $exception
             } -ModuleName $script:dscModuleName
 
@@ -232,7 +232,7 @@ Describe 'Submit-SESRequest' -Tag 'Private' {
                 if ($script:callCount -eq 1) {
                     $exception = [System.Net.WebException]::new('Temporary error')
                     $response = [PSCustomObject]@{ StatusCode = 503 }
-                    $exception | Add-Member -MemberType NoteProperty -Name 'Response' -Value $response
+                    $exception | Add-Member -MemberType NoteProperty -Name 'Response' -Value $response -Force
                     throw $exception
                 }
                 return @{
@@ -253,7 +253,7 @@ Describe 'Submit-SESRequest' -Tag 'Private' {
             Mock -CommandName 'Invoke-SESWebRequest' -MockWith {
                 $exception = [System.Net.WebException]::new('Server error')
                 $response = [PSCustomObject]@{ StatusCode = 503 }
-                $exception | Add-Member -MemberType NoteProperty -Name 'Response' -Value $response
+                $exception | Add-Member -MemberType NoteProperty -Name 'Response' -Value $response -Force
                 throw $exception
             } -ModuleName $script:dscModuleName
 
