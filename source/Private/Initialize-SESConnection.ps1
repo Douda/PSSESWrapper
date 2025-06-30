@@ -39,64 +39,64 @@ function Initialize-SESConnection {
         }
 
         Write-Verbose "Creating new SES connection object"
-        
+
         # Create the global connection object with default values
         $Global:SESConnection = [PSCustomObject]@{
             # Connection status
             IsConnected = $false
             ConnectedAt = $null
             LastActivity = $null
-            
+
             # Authentication information
             AuthToken = $null
             TokenExpiry = $null
             RefreshToken = $null
             ClientId = $null
             Region = $null
-            
+
             # API configuration
             BaseUri = $null
             ApiVersion = 'v1'
             UserAgent = "PSSESWrapper/$($MyInvocation.MyCommand.Module.Version)"
-            
+
             # Session settings
             TimeoutSec = 30
             RetryCount = 3
             RetryDelay = 1
-            
+
             # Regional endpoints
             RegionalEndpoints = @{
                 'us' = 'https://api.sep.securitycloud.symantec.com'
                 'eu' = 'https://api.sep.eu.securitycloud.symantec.com'
                 'in' = 'https://api.sep.in.securitycloud.symantec.com'
             }
-            
+
             # Connection metadata
             ConnectionId = [System.Guid]::NewGuid().ToString()
             PSVersion = $PSVersionTable.PSVersion.ToString()
             PSEdition = $PSVersionTable.PSEdition
-            Platform = if ($PSVersionTable.PSVersion.Major -ge 6) { 
-                if ($IsWindows) { 'Windows' } 
-                elseif ($IsLinux) { 'Linux' } 
-                elseif ($IsMacOS) { 'macOS' } 
+            Platform = if ($PSVersionTable.PSVersion.Major -ge 6) {
+                if ($IsWindows) { 'Windows' }
+                elseif ($IsLinux) { 'Linux' }
+                elseif ($IsMacOS) { 'macOS' }
                 else { 'Unknown' }
             } else { 'Windows' }
-            
+
             # Credential storage path
             CredentialPath = $null
-            
+
             # Debug and logging
             VerbosePreference = $VerbosePreference
             DebugPreference = $DebugPreference
         }
-        
+
         # Set the credential storage path based on platform
         $Global:SESConnection.CredentialPath = Get-SESCredentialPath
-        
+
         Write-Verbose "SES connection object initialized with ConnectionId: $($Global:SESConnection.ConnectionId)"
         Write-Verbose "Platform: $($Global:SESConnection.Platform), PSVersion: $($Global:SESConnection.PSVersion)"
         Write-Verbose "Credential path: $($Global:SESConnection.CredentialPath)"
-        
+
         return $Global:SESConnection
     }
 
@@ -151,16 +151,16 @@ function Get-SESCredentialPath {
                 # PowerShell 5.1 - Windows only
                 $credentialDir = Join-Path $env:APPDATA 'PSSESWrapper'
             }
-            
+
             # Ensure the directory exists
             if (-not (Test-Path $credentialDir)) {
                 New-Item -Path $credentialDir -ItemType Directory -Force | Out-Null
                 Write-Verbose "Created credential directory: $credentialDir"
             }
-            
+
             $credentialPath = Join-Path $credentialDir 'ses-credentials.xml'
             Write-Verbose "Credential path determined: $credentialPath"
-            
+
             return $credentialPath
         }
         catch {
@@ -199,7 +199,7 @@ function Reset-SESConnection {
     .NOTES
     This function is typically called by Disconnect-SESService.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter(Mandatory = $false, HelpMessage = "Preserve configuration settings")]
         [switch]$PreserveConfig
@@ -210,13 +210,14 @@ function Reset-SESConnection {
     }
 
     process {
-        if (-not $Global:SESConnection) {
-            Write-Verbose "No SES connection object to reset"
-            return
-        }
+        if ($PSCmdlet.ShouldProcess("SES Connection", "Reset connection state")) {
+            if (-not $Global:SESConnection) {
+                Write-Verbose "No SES connection object to reset"
+                return
+            }
 
-        Write-Verbose "Resetting SES connection object"
-        
+            Write-Verbose "Resetting SES connection object"
+
         # Store configuration if preserving
         $configToPreserve = @{}
         if ($PreserveConfig) {
@@ -229,18 +230,18 @@ function Reset-SESConnection {
                 CredentialPath = $Global:SESConnection.CredentialPath
             }
         }
-        
+
         # Reset connection status
         $Global:SESConnection.IsConnected = $false
         $Global:SESConnection.ConnectedAt = $null
         $Global:SESConnection.LastActivity = $null
-        
+
         # Clear authentication information
         $Global:SESConnection.AuthToken = $null
         $Global:SESConnection.TokenExpiry = $null
         $Global:SESConnection.RefreshToken = $null
         $Global:SESConnection.ClientId = $null
-        
+
         # Reset API configuration if not preserving
         if (-not $PreserveConfig) {
             $Global:SESConnection.Region = $null
@@ -255,12 +256,13 @@ function Reset-SESConnection {
                 $Global:SESConnection.$key = $configToPreserve[$key]
             }
         }
-        
+
         # Update connection metadata
         $Global:SESConnection.ConnectionId = [System.Guid]::NewGuid().ToString()
         $Global:SESConnection.LastActivity = Get-Date
-        
+
         Write-Verbose "SES connection object reset with new ConnectionId: $($Global:SESConnection.ConnectionId)"
+        }
     }
 
     end {
@@ -283,7 +285,7 @@ function Update-SESConnectionActivity {
     .NOTES
     This function is typically called automatically by API request functions.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param()
 
     begin {
@@ -291,12 +293,14 @@ function Update-SESConnectionActivity {
     }
 
     process {
-        if ($Global:SESConnection) {
-            $Global:SESConnection.LastActivity = Get-Date
-            Write-Verbose "Updated LastActivity to: $($Global:SESConnection.LastActivity)"
-        }
-        else {
-            Write-Verbose "No SES connection object to update"
+        if ($PSCmdlet.ShouldProcess("SES Connection", "Update activity timestamp")) {
+            if ($Global:SESConnection) {
+                $Global:SESConnection.LastActivity = Get-Date
+                Write-Verbose "Updated LastActivity to: $($Global:SESConnection.LastActivity)"
+            }
+            else {
+                Write-Verbose "No SES connection object to update"
+            }
         }
     }
 

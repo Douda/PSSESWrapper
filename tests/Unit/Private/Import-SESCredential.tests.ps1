@@ -17,65 +17,56 @@ AfterAll {
     Get-Module -Name $script:dscModuleName -All | Remove-Module -Force
 }
 
-Describe 'Export-SESCredentials' -Tag 'Private' {
+Describe 'Import-SESCredential' -Tag 'Private' {
     BeforeAll {
         InModuleScope -ScriptBlock {
             # Mock dependencies
-            Mock Export-Clixml {}
             Mock Get-SESCredentialPath { return 'TestDrive:\creds.xml' }
-            Mock New-Item {}
-            Mock Split-Path { return 'TestDrive:' }
-        }
-    }
-
-    Context 'When exporting credentials successfully' {
-        It 'Should export credentials to the correct path' {
-            InModuleScope -ScriptBlock {
-                $testCredentials = @{
+            Mock Test-Path { return $true }
+            Mock Import-Clixml {
+                return @{
                     ClientId = 'test-client-id'
                     SecretKey = 'test-secret-key'
                     Region = 'us'
-                }
-                
-                Export-SESCredentials -Credentials $testCredentials
-                
-                Should -Invoke Export-Clixml -Exactly 1 -ParameterFilter {
-                    $Path -eq 'TestDrive:\creds.xml'
                 }
             }
         }
+    }
 
-        It 'Should create directory if it does not exist' {
+    Context 'When importing credentials successfully' {
+        It 'Should import credentials from the correct path' {
+            InModuleScope -ScriptBlock {
+                $result = Import-SESCredential
+                
+                Should -Invoke Import-Clixml -Exactly 1 -ParameterFilter {
+                    $Path -eq 'TestDrive:\creds.xml'
+                }
+                
+                $result.ClientId | Should -Be 'test-client-id'
+                $result.SecretKey | Should -Be 'test-secret-key'
+                $result.Region | Should -Be 'us'
+            }
+        }
+
+        It 'Should return null when credential file does not exist' {
             InModuleScope -ScriptBlock {
                 Mock Test-Path { return $false }
                 
-                $testCredentials = @{
-                    ClientId = 'test-client-id'
-                    SecretKey = 'test-secret-key'
-                    Region = 'us'
-                }
+                $result = Import-SESCredential
                 
-                Export-SESCredentials -Credentials $testCredentials
-                
-                Should -Invoke New-Item -Exactly 1 -ParameterFilter {
-                    $ItemType -eq 'Directory'
-                }
+                $result | Should -Be $null
             }
         }
     }
 
     Context 'When handling errors' {
-        It 'Should handle export errors gracefully' {
+        It 'Should handle import errors gracefully' {
             InModuleScope -ScriptBlock {
-                Mock Export-Clixml { throw 'Export failed' }
+                Mock Import-Clixml { throw 'Import failed' }
                 
-                $testCredentials = @{
-                    ClientId = 'test-client-id'
-                    SecretKey = 'test-secret-key'
-                    Region = 'us'
-                }
+                $result = Import-SESCredential
                 
-                { Export-SESCredentials -Credentials $testCredentials } | Should -Throw
+                $result | Should -Be $null
             }
         }
     }

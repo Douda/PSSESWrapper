@@ -74,13 +74,13 @@ function Invoke-SESWebRequest {
 
     begin {
         Write-Verbose "Starting Invoke-SESWebRequest for $Method $Uri"
-        
+
         # Determine PowerShell version and platform capabilities
         $psVersion = $PSVersionTable.PSVersion
         $isCorePowerShell = $PSVersionTable.PSEdition -eq 'Core'
-        $isWindows = if ($PSVersionTable.PSVersion.Major -ge 6) { $IsWindows } else { $true }
-        
-        Write-Verbose "PowerShell Version: $($psVersion), Edition: $($PSVersionTable.PSEdition), Windows: $isWindows"
+        $isWindowsPlatform = if ($PSVersionTable.PSVersion.Major -ge 6) { $IsWindows } else { $true }
+
+        Write-Verbose "PowerShell Version: $($psVersion), Edition: $($PSVersionTable.PSEdition), Windows: $isWindowsPlatform"
     }
 
     process {
@@ -109,10 +109,10 @@ function Invoke-SESWebRequest {
                 else {
                     # PowerShell 5.1 - need to handle SSL differently
                     Write-Verbose "PowerShell 5.1 detected - handling SSL certificate validation"
-                    
+
                     # Store original certificate policy
                     $originalCertificatePolicy = [System.Net.ServicePointManager]::CertificatePolicy
-                    
+
                     # Create a custom certificate policy that accepts all certificates
                     if (-not ([System.Management.Automation.PSTypeName]'TrustAllCertsPolicy').Type) {
                         Add-Type -TypeDefinition @"
@@ -127,7 +127,7 @@ function Invoke-SESWebRequest {
                             }
 "@
                     }
-                    
+
                     [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
                 }
             }
@@ -144,10 +144,10 @@ function Invoke-SESWebRequest {
             }
 
             Write-Verbose "Invoking REST method with parameters: $($splat | ConvertTo-Json -Compress)"
-            
+
             # Make the actual web request
             $response = Invoke-RestMethod @splat
-            
+
             Write-Verbose "Request completed successfully"
             return $response
         }
@@ -155,7 +155,7 @@ function Invoke-SESWebRequest {
             # Handle web exceptions with detailed error information
             $webException = $_.Exception
             $response = $webException.Response
-            
+
             $errorDetails = @{
                 StatusCode = $null
                 StatusDescription = $null
@@ -166,7 +166,7 @@ function Invoke-SESWebRequest {
             if ($response) {
                 $errorDetails.StatusCode = $response.StatusCode
                 $errorDetails.StatusDescription = $response.StatusDescription
-                
+
                 # Try to read the response stream for error details
                 try {
                     $stream = $response.GetResponseStream()
@@ -181,7 +181,7 @@ function Invoke-SESWebRequest {
             }
 
             Write-Verbose "WebException caught: StatusCode=$($errorDetails.StatusCode), Description=$($errorDetails.StatusDescription)"
-            
+
             # Create a custom error with detailed information
             $errorMessage = "Web request failed"
             if ($errorDetails.StatusCode) {
@@ -198,7 +198,7 @@ function Invoke-SESWebRequest {
             $customError | Add-Member -MemberType NoteProperty -Name 'Response' -Value $response
             $customError | Add-Member -MemberType NoteProperty -Name 'StatusCode' -Value $errorDetails.StatusCode
             $customError | Add-Member -MemberType NoteProperty -Name 'ResponseBody' -Value $errorDetails.ResponseBody
-            
+
             throw $customError
         }
         catch {

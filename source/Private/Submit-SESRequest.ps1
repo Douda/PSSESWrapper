@@ -79,7 +79,7 @@ function Submit-SESRequest {
 
     begin {
         Write-Verbose "Starting Submit-SESRequest with URI: $Uri"
-        
+
         # Validate connection
         if (-not $Global:SESConnection -or -not $Global:SESConnection.IsConnected) {
             throw "No active SES connection found. Please run Connect-SESService first."
@@ -90,7 +90,7 @@ function Submit-SESRequest {
         if ($Global:SESConnection.AuthToken) {
             $requestHeaders['Authorization'] = "Bearer $($Global:SESConnection.AuthToken)"
         }
-        
+
         # Add default headers
         $requestHeaders['Accept'] = 'application/json'
         $requestHeaders['User-Agent'] = "PSSESWrapper/$($MyInvocation.MyCommand.Module.Version)"

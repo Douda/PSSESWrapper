@@ -84,7 +84,7 @@ function Connect-SESService {
 
     begin {
         Write-Verbose "Starting Connect-SESService"
-        
+
         # Initialize connection object
         Initialize-SESConnection -Force:$Force
 
@@ -102,7 +102,7 @@ function Connect-SESService {
                 switch ($PSCmdlet.ParameterSetName) {
                     'StoredCredentials' {
                         Write-Verbose "Using stored credentials"
-                        $credentials = Import-SESCredentials
+                        $credentials = Import-SESCredential
                         if (-not $credentials) {
                             throw "No stored credentials found. Please run Connect-SESService with -ClientId and -ClientSecret first."
                         }
@@ -163,10 +163,10 @@ function Connect-SESService {
 
                 # Update connection object with authentication details
                 $Global:SESConnection.AuthToken = $authResponse.access_token
-                $Global:SESConnection.TokenExpiry = if ($authResponse.expires_in) { 
-                    (Get-Date).AddSeconds($authResponse.expires_in) 
-                } else { 
-                    (Get-Date).AddHours(1) 
+                $Global:SESConnection.TokenExpiry = if ($authResponse.expires_in) {
+                    (Get-Date).AddSeconds($authResponse.expires_in)
+                } else {
+                    (Get-Date).AddHours(1)
                 }
                 $Global:SESConnection.RefreshToken = $authResponse.refresh_token
                 $Global:SESConnection.ClientId = $ClientId
@@ -178,7 +178,7 @@ function Connect-SESService {
                 # Save credentials if requested
                 if ($SaveCredentials) {
                     Write-Verbose "Saving credentials for future use"
-                    Export-SESCredentials -ClientId $ClientId -ClientSecret $ClientSecret -Region $Region
+                    Export-SESCredential -ClientId $ClientId -ClientSecret $ClientSecret -Region $Region
                 }
 
                 # Test the connection with a simple API call
@@ -194,16 +194,16 @@ function Connect-SESService {
 
                 Update-SESConnectionActivity
 
-                Write-Host "Successfully connected to SES API" -ForegroundColor Green
-                Write-Host "Region: $($Global:SESConnection.Region)" -ForegroundColor Green
-                Write-Host "Base URI: $($Global:SESConnection.BaseUri)" -ForegroundColor Green
-                Write-Host "Token expires: $($Global:SESConnection.TokenExpiry)" -ForegroundColor Green
+                Write-Information "Successfully connected to SES API" -InformationAction Continue
+                Write-Information "Region: $($Global:SESConnection.Region)" -InformationAction Continue
+                Write-Information "Base URI: $($Global:SESConnection.BaseUri)" -InformationAction Continue
+                Write-Information "Token expires: $($Global:SESConnection.TokenExpiry)" -InformationAction Continue
 
                 return $Global:SESConnection
             }
             catch {
                 Write-Error "Failed to connect to SES API: $($_.Exception.Message)"
-                
+
                 # Reset connection on failure
                 Reset-SESConnection
                 throw
@@ -220,17 +220,17 @@ function Connect-SESService {
     }
 }
 
-function Import-SESCredentials {
+function Import-SESCredential {
     <#
     .SYNOPSIS
     Imports previously saved SES credentials.
 
     .DESCRIPTION
     This function imports SES credentials that were previously saved using
-    Export-SESCredentials. The credentials are encrypted and stored securely.
+    Export-SESCredential. The credentials are encrypted and stored securely.
 
     .EXAMPLE
-    Import-SESCredentials
+    Import-SESCredential
 
     .NOTES
     This is a private helper function used by Connect-SESService.
@@ -240,13 +240,13 @@ function Import-SESCredentials {
     param()
 
     begin {
-        Write-Verbose "Starting Import-SESCredentials"
+        Write-Verbose "Starting Import-SESCredential"
     }
 
     process {
         try {
             $credentialPath = Get-SESCredentialPath
-            
+
             if (-not (Test-Path $credentialPath)) {
                 Write-Verbose "No credential file found at: $credentialPath"
                 return $null
@@ -254,7 +254,7 @@ function Import-SESCredentials {
 
             Write-Verbose "Importing credentials from: $credentialPath"
             $credentials = Import-Clixml -Path $credentialPath
-            
+
             if (-not $credentials -or -not $credentials.ClientId) {
                 Write-Warning "Invalid credential file format"
                 return $null
@@ -270,11 +270,11 @@ function Import-SESCredentials {
     }
 
     end {
-        Write-Verbose "Completed Import-SESCredentials"
+        Write-Verbose "Completed Import-SESCredential"
     }
 }
 
-function Export-SESCredentials {
+function Export-SESCredential {
     <#
     .SYNOPSIS
     Exports SES credentials securely for future use.
@@ -293,7 +293,7 @@ function Export-SESCredentials {
     The regional endpoint to save.
 
     .EXAMPLE
-    Export-SESCredentials -ClientId "client-id" -ClientSecret "secret" -Region "us"
+    Export-SESCredential -ClientId "client-id" -ClientSecret "secret" -Region "us"
 
     .NOTES
     This is a private helper function used by Connect-SESService.
@@ -314,7 +314,7 @@ function Export-SESCredentials {
     )
 
     begin {
-        Write-Verbose "Starting Export-SESCredentials"
+        Write-Verbose "Starting Export-SESCredential"
     }
 
     process {
@@ -341,6 +341,6 @@ function Export-SESCredentials {
     }
 
     end {
-        Write-Verbose "Completed Export-SESCredentials"
+        Write-Verbose "Completed Export-SESCredential"
     }
 }
