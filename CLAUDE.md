@@ -4,7 +4,13 @@
 Develop a PowerShell module named PSSESWrapper that serves as an API wrapper around the Symantec Endpoint Security (SES) API. The module should support Windows PowerShell 5.1 and PowerShell 7.x on both Windows and Linux platforms. The module will use Git for version control, GitVersion for versioning, and GitHub Actions for CI/CD.
 
 ## Project progression tracking
-- prior to any changes update the `CLAUD-IN-PROGRESS.md` file with the planned changes, and add checkboxes
+**MANDATORY REQUIREMENTS:**
+- Prior to any changes, update the `CLAUDE-IN-PROGRESS.md` file with the planned changes and add checkboxes
+- Between every minor step, update `CLAUDE-IN-PROGRESS.md` with current progress
+- **AFTER EVERY COMPLETED STEP: Update both `CLAUDE.md` and `CLAUDE-IN-PROGRESS.md` with checked [x] boxes**
+- **NO STEP IS CONSIDERED COMPLETE until both files have been updated with [x] checkboxes**
+- Both files must always be synchronized with the same completion status
+- This checkbox tracking is mandatory for the entire project lifecycle
 
 ## Changelog Management
 - **MANDATORY**: Update `CHANGELOG.md` for every commit with meaningful information
@@ -84,12 +90,32 @@ here is the list of all the API endpoints we have access to :
   - **Response Processing**: Convert API responses to PowerShell objects with proper type definitions
   - **Helper Functions**: Create utility functions for date conversion, JSON formatting, and data transformation
 
-### Testing requierements
-  - New features require tests
+### Testing Requirements
+  - **MANDATORY**: Every new function created must have a corresponding Pester unit test file
+  - **MANDATORY**: Test files must be created in the appropriate test directory structure:
+    - Public functions: `tests/Unit/Public/[FunctionName].tests.ps1`
+    - Private functions: `tests/Unit/Private/[FunctionName].tests.ps1`
+  - **MANDATORY**: Each test file must include at minimum:
+    - Parameter validation tests
+    - Success scenario tests
+    - Error handling tests
+    - Mock tests for external dependencies (API calls, file operations)
+  - **MANDATORY STEP VALIDATION**: Every time a step within a phase is validated:
+    - Verify that all new functions have corresponding unit tests
+    - Force creation of missing tests if necessary
+    - Run `./build.ps1 -Tasks test` to validate all tests pass locally
+    - Commit changes to trigger CI/CD pipeline for cross-platform validation
+    - **NO STEP COMPLETION** until CI/CD pipeline passes on all platforms (Linux PS7, Windows PS5.1, Windows PS7)
+  - **CI/CD PIPELINE VERIFICATION**: Required for cross-platform compatibility validation:
+    - Ubuntu PowerShell 7.x - Development environment validation
+    - Windows PowerShell 5.1 - Legacy compatibility validation  
+    - Windows PowerShell 7.x - Modern Windows compatibility validation
+  - New features require comprehensive test coverage
   - Bug fixes require regression tests
   - All commands must include pagination handling verification and Pester tests
   - Test pagination scenarios: single page, multiple pages, empty results
   - Validate correct handling of API response structures
+  - **NO FUNCTION DEPLOYMENT**: Functions cannot be considered complete until unit tests are written and passing on all platforms
 
 ### Function Examples & Expected Behavior
 
@@ -259,29 +285,41 @@ dotnet tool install --global GitVersion.Tool --version 5.12.0
 
 # Add GitVersion to PATH (add to ~/.bash_profile for persistence)
 export PATH="$PATH:/home/douda/.dotnet/tools"
+echo 'export PATH="$PATH:/home/douda/.dotnet/tools"' >> ~/.bash_profile
 ```
+
+**WSL Development Environment Validation Results:**
+- ✅ PowerShell 7.5.1 - Working
+- ✅ Git 2.43.0 - Working  
+- ✅ .NET SDK 8.0.117 - Working
+- ✅ GitVersion 5.12.0 - Working and configured
+- ✅ Sampler build framework - Working (`./build.ps1` successful)
+- ✅ Pester 5.7.1 testing - Working (44 tests passed, 100% coverage)
+- ✅ GitHub Actions CI/CD pipeline - Configured for multi-platform testing
 
 ## Authentication Credentials
 Authentication credentials are stored in `CLAUDE-CREDENTIALS.md` (excluded from version control for security).
 
 ## Development Plan & Progress Tracking
 
-### Phase 0: Environment Validation & CI/CD Setup (Ubuntu WSL)
-- [ ] ✅ Verify PowerShell 7.5.1 or later is installed and working
-- [ ] ✅ Confirm Git 2.43.0 or later is available for version control
-- [ ] Verify GitVersion configuration and functionality for proper module versioning
-- [ ] Initialize/switch to "dev" branch for development
-- [ ] **Initial Commit: Create project baseline snapshot (excluding credentials)**
-- [ ] Configure GitHub Actions CI/CD pipeline for multi-platform testing:
-  - [ ] Ubuntu (PowerShell 7.x) - for development validation
-  - [ ] Windows (PowerShell 5.1) - for compatibility validation
-  - [ ] Windows (PowerShell 7.x) - for cross-version validation
-- [ ] Test build.ps1 script execution in WSL environment
-- [ ] Validate Pester testing framework availability
-- [ ] Test live API connection using provided credentials (Linux)
-- [ ] Update CLAUDE.md with WSL-specific development notes
-- [ ] Create CLAUDE-IN-PROGRESS.md tracking file
-- [ ] **Commit: "Initialize development environment and CI/CD pipeline"**
+### Phase 0: Environment Validation & CI/CD Setup (Ubuntu WSL) ✅ COMPLETED
+- [x] ✅ Verify PowerShell 7.5.1 or later is installed and working
+- [x] ✅ Confirm Git 2.43.0 or later is available for version control
+- [x] Install .NET SDK 8.0.117 for GitVersion dependency
+- [x] Install GitVersion 5.12.0 as global tool (version 5.x to avoid v6 breaking changes)
+- [x] Verify GitVersion configuration and functionality for proper module versioning
+- [x] Initialize/switch to "dev" branch for development
+- [x] **Initial Commit: Create project baseline snapshot (excluding credentials)**
+- [x] Configure GitHub Actions CI/CD pipeline for multi-platform testing:
+  - [x] Ubuntu (PowerShell 7.x) - for development validation
+  - [x] Windows (PowerShell 5.1) - for compatibility validation
+  - [x] Windows (PowerShell 7.x) - for cross-version validation
+- [x] Test build.ps1 script execution in WSL environment (✅ Build successful)
+- [x] Validate Pester testing framework availability (✅ 44 tests passed, 100% coverage)
+- [ ] Test live API connection using provided credentials (Linux) - **SKIPPED for Phase 0**
+- [x] Update CLAUDE.md with WSL-specific development notes
+- [x] Create CLAUDE-IN-PROGRESS.md tracking file
+- [x] **Commit: "Initialize development environment and CI/CD pipeline"**
 
 ### Phase 1: Foundation Setup + Cross-Platform Testing
 - [ ] Implement core request handling infrastructure:
