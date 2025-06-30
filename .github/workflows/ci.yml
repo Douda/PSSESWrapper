@@ -13,10 +13,11 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       
-    - name: Setup PowerShell
-      uses: azure/powershell@v1
-      with:
-        azPSVersion: latest
+    - name: Install PowerShell
+      shell: bash
+      run: |
+        # PowerShell is pre-installed on ubuntu-latest runners
+        pwsh --version
         
     - name: Install dependencies
       shell: pwsh
