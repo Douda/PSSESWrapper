@@ -61,10 +61,11 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       
-    - name: Setup PowerShell 7
-      uses: azure/powershell@v1
-      with:
-        azPSVersion: latest
+    - name: Install PowerShell 7
+      shell: pwsh
+      run: |
+        # PowerShell 7 is pre-installed on windows-latest runners
+        $PSVersionTable.PSVersion
         
     - name: Install dependencies
       shell: pwsh
