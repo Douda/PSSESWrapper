@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches: [ dev, main ]
+  pull_request:
+    branches: [ dev, main ]
+
+jobs:
+  test-ubuntu:
+    name: Test on Ubuntu (PowerShell 7.x)
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      
+    - name: Setup PowerShell
+      uses: azure/powershell@v1
+      with:
+        azPSVersion: latest
+        
+    - name: Install dependencies
+      shell: pwsh
+      run: |
+        ./build.ps1 -ResolveDependency
+        
+    - name: Run tests
+      shell: pwsh
+      run: |
+        ./build.ps1 -Tasks test
+        
+    - name: Build module
+      shell: pwsh
+      run: |
+        ./build.ps1 -Tasks build
+
+  test-windows-ps5:
+    name: Test on Windows (PowerShell 5.1)
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+      
+    - name: Install dependencies
+      shell: powershell
+      run: |
+        .\build.ps1 -ResolveDependency
+        
+    - name: Run tests
+      shell: powershell
+      run: |
+        .\build.ps1 -Tasks test
+        
+    - name: Build module
+      shell: powershell
+      run: |
+        .\build.ps1 -Tasks build
+
+  test-windows-ps7:
+    name: Test on Windows (PowerShell 7.x)
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+      
+    - name: Setup PowerShell 7
+      uses: azure/powershell@v1
+      with:
+        azPSVersion: latest
+        
+    - name: Install dependencies
+      shell: pwsh
+      run: |
+        .\build.ps1 -ResolveDependency
+        
+    - name: Run tests
+      shell: pwsh
+      run: |
+        .\build.ps1 -Tasks test
+        
+    - name: Build module
+      shell: pwsh
+      run: |
+        .\build.ps1 -Tasks build
