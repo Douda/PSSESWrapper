@@ -85,19 +85,24 @@ function Connect-SESService {
     begin {
         Write-Verbose "Starting Connect-SESService"
 
-        # Initialize connection object
-        Initialize-SESConnection -Force:$Force
-
-        # Check if already connected and not forcing
-        if ($Global:SESConnection.IsConnected -and -not $Force) {
-            Write-Warning "Already connected to SES API. Use -Force to establish a new connection."
-            return $Global:SESConnection
+        # Only initialize connection object if not in WhatIf mode
+        if (-not $PSCmdlet.ShouldProcess("SES API", "Initialize connection object")) {
+            Write-Verbose "WhatIf mode - skipping connection initialization"
+            return
         }
+
+        # Initialize connection object (suppress output)
+        $null = Initialize-SESConnection -Force:$Force
     }
 
     process {
         if ($PSCmdlet.ShouldProcess("SES API", "Establish connection")) {
             try {
+                # Check if already connected and not forcing
+                if ($Global:SESConnection.IsConnected -and -not $Force) {
+                    Write-Warning "Already connected to SES API. Use -Force to establish a new connection."
+                    return $Global:SESConnection
+                }
                 # Handle parameter sets
                 switch ($PSCmdlet.ParameterSetName) {
                     'StoredCredentials' {
@@ -134,7 +139,6 @@ function Connect-SESService {
 
                 # Prepare authentication request (SES API uses Basic Auth header method)
                 $authUri = "$($Global:SESConnection.BaseUri)/v1/oauth2/tokens"
-                
                 # Create Basic Authentication header as per SES API documentation
                 $authString = "$ClientId`:$ClientSecret"
                 $encodedAuth = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes($authString))
@@ -214,8 +218,7 @@ function Connect-SESService {
             }
         }
         else {
-            Write-Verbose "Connection cancelled by user"
-            return $null
+            Write-Verbose "Connection cancelled by user (WhatIf mode)"
         }
     }
 
