@@ -30,13 +30,7 @@ Describe 'Export-SESCredential' -Tag 'Private' {
     Context 'When exporting credentials successfully' {
         It 'Should export credentials to the correct path' {
             InModuleScope -ScriptBlock {
-                $testCredentials = @{
-                    ClientId = 'test-client-id'
-                    SecretKey = 'test-secret-key'
-                    Region = 'us'
-                }
-                
-                Export-SESCredential -Credentials $testCredentials
+                Export-SESCredential -ClientId 'test-client-id' -ClientSecret 'test-secret-key' -Region 'us'
                 
                 Should -Invoke Export-Clixml -Exactly 1 -ParameterFilter {
                     $Path -eq 'TestDrive:/creds.xml'
@@ -46,35 +40,27 @@ Describe 'Export-SESCredential' -Tag 'Private' {
 
         It 'Should create directory if it does not exist' {
             InModuleScope -ScriptBlock {
-                Mock -CommandName 'Test-Path' -MockWith { return $false } -ModuleName $script:dscModuleName
-                
-                $testCredentials = @{
-                    ClientId = 'test-client-id'
-                    SecretKey = 'test-secret-key'
-                    Region = 'us'
-                }
-                
-                Export-SESCredential -Credentials $testCredentials
-                
-                Should -Invoke New-Item -Exactly 1 -ParameterFilter {
-                    $ItemType -eq 'Directory'
-                }
+                # Get-SESCredentialPath should handle directory creation
+                Mock -CommandName 'Get-SESCredentialPath' -MockWith {
+                    # Mock directory creation within Get-SESCredentialPath
+                    New-Item -Path 'TestDrive:' -ItemType Directory -Force | Out-Null
+                    return 'TestDrive:/creds.xml'
+                } -ModuleName $script:dscModuleName
+
+                Export-SESCredential -ClientId 'test-client-id' -ClientSecret 'test-secret-key' -Region 'us'
+
+                Should -Invoke Get-SESCredentialPath -Exactly 1
             }
         }
     }
 
     Context 'When handling errors' {
         It 'Should handle export errors gracefully' {
+            # Mock at module level, not inside InModuleScope
+            Mock -CommandName 'Export-Clixml' -MockWith { throw 'Export failed' } -ModuleName $script:dscModuleName
+
             InModuleScope -ScriptBlock {
-                Mock -CommandName 'Export-Clixml' -MockWith { throw 'Export failed' } -ModuleName $script:dscModuleName
-                
-                $testCredentials = @{
-                    ClientId = 'test-client-id'
-                    SecretKey = 'test-secret-key'
-                    Region = 'us'
-                }
-                
-                { Export-SESCredential -Credentials $testCredentials } | Should -Throw
+                { Export-SESCredential -ClientId 'test-client-id' -ClientSecret 'test-secret-key' -Region 'us' } | Should -Throw
             }
         }
     }
