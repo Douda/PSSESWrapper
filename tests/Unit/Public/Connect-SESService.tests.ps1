@@ -273,17 +273,32 @@ Describe 'Connect-SESService' -Tag 'Public' {
 
     Context 'Connection State Management' {
         It 'Should return existing connection when already connected and Force not specified' {
-            # Override the BeforeAll mock for this specific test
+            # First set up an existing connection manually
+            InModuleScope -ScriptBlock {
+                $Global:SESConnection = @{
+                    IsConnected = $true
+                    AuthToken = 'existing-token'
+                    RegionalEndpoints = @{
+                        'us' = 'https://api.sep.securitycloud.symantec.com'
+                    }
+                    TimeoutSec = 30
+                    Region = 'us'
+                    BaseUri = 'https://api.sep.securitycloud.symantec.com'
+                }
+            }
+
+            # Override the BeforeAll mock for Initialize-SESConnection to preserve existing connection
             Mock -CommandName 'Initialize-SESConnection' -MockWith {
+                # Don't modify existing connection if Force is not specified
+                if (-not $Force -and $Global:SESConnection.IsConnected) {
+                    # Preserve existing connection state
+                    return
+                }
+                # Otherwise use default initialization
                 if (-not $Global:SESConnection) {
                     $Global:SESConnection = @{}
                 }
-                $Global:SESConnection.IsConnected = $true
-                $Global:SESConnection.AuthToken = 'existing-token'
-                $Global:SESConnection.RegionalEndpoints = @{
-                    'us' = 'https://api.sep.securitycloud.symantec.com'
-                }
-                $Global:SESConnection.TimeoutSec = 30
+                $Global:SESConnection.IsConnected = $false
             } -ModuleName $script:dscModuleName
             
             # Ensure Invoke-SESWebRequest is not called for existing connection
