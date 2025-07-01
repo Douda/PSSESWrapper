@@ -193,8 +193,8 @@ Describe 'Invoke-SESWebRequest' -Tag 'Private' {
                     }
                 }
 
-                # Create a WebException with the mock response
-                $webException = New-Object System.Net.WebException('Request failed', $null, [System.Net.WebExceptionStatus]::ProtocolError, $mockResponse)
+                # Create a WebException (simplified constructor for cross-platform compatibility)
+                $webException = New-Object System.Net.WebException('Request failed')
                 throw $webException
             } -ModuleName $script:dscModuleName
 

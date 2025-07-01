@@ -60,7 +60,7 @@ function Invoke-SESWebRequest {
         [string]$Body,
 
         [Parameter(Mandatory = $false, HelpMessage = "The content type for the request")]
-        [string]$ContentType,
+        [string]$ContentType = 'application/json',
 
         [Parameter(Mandatory = $false, HelpMessage = "Request timeout in seconds")]
         [int]$TimeoutSec = 30,
@@ -93,10 +93,8 @@ function Invoke-SESWebRequest {
                 TimeoutSec = $TimeoutSec
             }
 
-            # Add ContentType only if specified
-            if ($ContentType) {
-                $splat['ContentType'] = $ContentType
-            }
+            # Add ContentType (always set with default value)
+            $splat['ContentType'] = $ContentType
 
             # Add body if provided
             if ($Body) {
@@ -137,8 +135,17 @@ function Invoke-SESWebRequest {
             }
 
             # Handle UseBasicParsing for different PowerShell versions
-            if ($UseBasicParsing -and -not $isCorePowerShell) {
-                $splat['UseBasicParsing'] = $true
+            if ($UseBasicParsing) {
+                if (-not $isCorePowerShell) {
+                    # PowerShell 5.1 supports UseBasicParsing
+                    $splat['UseBasicParsing'] = $true
+                    Write-Verbose "Using UseBasicParsing for PowerShell 5.1 compatibility"
+                }
+                else {
+                    # PowerShell Core doesn't need UseBasicParsing but we'll set it for consistency
+                    $splat['UseBasicParsing'] = $true
+                    Write-Verbose "UseBasicParsing specified for PowerShell Core"
+                }
             }
 
             # Set TLS version for better compatibility
