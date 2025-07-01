@@ -21,7 +21,7 @@ Describe 'Initialize-SESConnection' -Tag 'Private' {
     BeforeEach {
         InModuleScope -ScriptBlock {
             # Clear any existing global connection
-            Remove-Variable -Name 'SESConnection' -Scope Global -Force -ErrorAction SilentlyContinue
+            Reset-SESConnection
         }
     }
 
