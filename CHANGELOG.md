@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Phase 1.5 test isolation improvements achieving 54% reduction in test failures (69→32)
+- Phase 1.5 test isolation improvements achieving 54% reduction in test failures (69 to 32)
 - Complete Submit-SESRequest test suite stabilization with 100% pass rate (18/18 tests)
 - Enhanced Pester 5.x syntax compatibility for error handling tests
 - Improved global state management in test infrastructure
