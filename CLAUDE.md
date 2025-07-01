@@ -222,6 +222,7 @@ here is the list of all the API endpoints we have access to :
 ## Development Commands
 
 ### Build Commands
+The build commands need to be running from the PowerShell shell (pwsh)
 ```powershell
 # Build the module
 ./build.ps1
