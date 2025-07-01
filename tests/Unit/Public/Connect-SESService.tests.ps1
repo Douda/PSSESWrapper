@@ -19,24 +19,25 @@ AfterAll {
 
 Describe 'Connect-SESService' -Tag 'Public' {
     BeforeAll {
-        # Mock the dependencies
+        # Mock the dependencies - Initialize connection with proper setup
         Mock -CommandName 'Initialize-SESConnection' -MockWith {
-            $Global:SESConnection = @{
-                IsConnected = $false
-                AuthToken = $null
-                BaseUri = $null
-                Region = $null
-                RegionalEndpoints = @{
-                    'us' = 'https://api.sep.securitycloud.symantec.com'
-                    'eu' = 'https://api.sep.eu.securitycloud.symantec.com'
-                    'in' = 'https://api.sep.in.securitycloud.symantec.com'
-                }
-                TimeoutSec = 30
-                TokenExpiry = $null
-                RefreshToken = $null
-                ClientId = $null
-                ConnectedAt = $null
+            if (-not $Global:SESConnection) {
+                $Global:SESConnection = @{}
             }
+            $Global:SESConnection.IsConnected = $false
+            $Global:SESConnection.AuthToken = $null
+            $Global:SESConnection.BaseUri = $null
+            $Global:SESConnection.Region = $null
+            $Global:SESConnection.RegionalEndpoints = @{
+                'us' = 'https://api.sep.securitycloud.symantec.com'
+                'eu' = 'https://api.sep.eu.securitycloud.symantec.com'
+                'in' = 'https://api.sep.in.securitycloud.symantec.com'
+            }
+            $Global:SESConnection.TimeoutSec = 30
+            $Global:SESConnection.TokenExpiry = $null
+            $Global:SESConnection.RefreshToken = $null
+            $Global:SESConnection.ClientId = $null
+            $Global:SESConnection.ConnectedAt = $null
         } -ModuleName $script:dscModuleName
 
         Mock -CommandName 'Invoke-SESWebRequest' -MockWith {
@@ -54,8 +55,8 @@ Describe 'Connect-SESService' -Tag 'Public' {
 
         Mock -CommandName 'Update-SESConnectionActivity' -MockWith { } -ModuleName $script:dscModuleName
         Mock -CommandName 'Reset-SESConnection' -MockWith { } -ModuleName $script:dscModuleName
-        Mock -CommandName 'Export-SESCredentials' -MockWith { } -ModuleName $script:dscModuleName
-        Mock -CommandName 'Import-SESCredentials' -MockWith {
+        Mock -CommandName 'Export-SESCredential' -MockWith { } -ModuleName $script:dscModuleName
+        Mock -CommandName 'Import-SESCredential' -MockWith {
             return @{
                 ClientId = 'stored-client-id'
                 ClientSecret = 'stored-client-secret'
@@ -63,7 +64,8 @@ Describe 'Connect-SESService' -Tag 'Public' {
             }
         } -ModuleName $script:dscModuleName
 
-        Mock -CommandName 'Write-Host' -MockWith { } -ModuleName $script:dscModuleName
+        Mock -CommandName 'Write-Information' -MockWith { } -ModuleName $script:dscModuleName
+        Mock -CommandName 'Write-Warning' -MockWith { } -ModuleName $script:dscModuleName
     }
 
     BeforeEach {
@@ -143,7 +145,7 @@ Describe 'Connect-SESService' -Tag 'Public' {
                 $result | Should -Not -BeNullOrEmpty
             }
 
-            Should -Invoke -CommandName 'Import-SESCredentials' -Times 1 -Exactly
+            Should -Invoke -CommandName 'Import-SESCredential' -Times 1 -Exactly
             Should -Invoke -CommandName 'Invoke-SESWebRequest' -ParameterFilter {
                 $Body -match 'stored-client-id'
             } -Times 1 -Exactly
@@ -205,7 +207,7 @@ Describe 'Connect-SESService' -Tag 'Public' {
                 Connect-SESService -ClientId 'test-client' -ClientSecret 'test-secret' -Region 'us' -SaveCredentials
             }
 
-            Should -Invoke -CommandName 'Export-SESCredentials' -ParameterFilter {
+            Should -Invoke -CommandName 'Export-SESCredential' -ParameterFilter {
                 $ClientId -eq 'test-client' -and
                 $ClientSecret -eq 'test-secret' -and
                 $Region -eq 'us'
@@ -216,10 +218,15 @@ Describe 'Connect-SESService' -Tag 'Public' {
     Context 'Connection State Management' {
         It 'Should return existing connection when already connected and Force not specified' {
             Mock -CommandName 'Initialize-SESConnection' -MockWith {
-                $Global:SESConnection = @{
-                    IsConnected = $true
-                    AuthToken = 'existing-token'
+                if (-not $Global:SESConnection) {
+                    $Global:SESConnection = @{}
                 }
+                $Global:SESConnection.IsConnected = $true
+                $Global:SESConnection.AuthToken = 'existing-token'
+                $Global:SESConnection.RegionalEndpoints = @{
+                    'us' = 'https://api.sep.securitycloud.symantec.com'
+                }
+                $Global:SESConnection.TimeoutSec = 30
             } -ModuleName $script:dscModuleName
 
             InModuleScope -ScriptBlock {
@@ -232,14 +239,15 @@ Describe 'Connect-SESService' -Tag 'Public' {
 
         It 'Should force new connection when Force is specified' {
             Mock -CommandName 'Initialize-SESConnection' -MockWith {
-                $Global:SESConnection = @{
-                    IsConnected = $true
-                    AuthToken = 'existing-token'
-                    RegionalEndpoints = @{
-                        'us' = 'https://api.sep.securitycloud.symantec.com'
-                    }
-                    TimeoutSec = 30
+                if (-not $Global:SESConnection) {
+                    $Global:SESConnection = @{}
                 }
+                $Global:SESConnection.IsConnected = $true
+                $Global:SESConnection.AuthToken = 'existing-token'
+                $Global:SESConnection.RegionalEndpoints = @{
+                    'us' = 'https://api.sep.securitycloud.symantec.com'
+                }
+                $Global:SESConnection.TimeoutSec = 30
             } -ModuleName $script:dscModuleName
 
             InModuleScope -ScriptBlock {
@@ -275,7 +283,7 @@ Describe 'Connect-SESService' -Tag 'Public' {
         }
 
         It 'Should throw when no stored credentials are found' {
-            Mock -CommandName 'Import-SESCredentials' -MockWith {
+            Mock -CommandName 'Import-SESCredential' -MockWith {
                 return $null
             } -ModuleName $script:dscModuleName
 
@@ -354,7 +362,7 @@ Describe 'Connect-SESService' -Tag 'Public' {
     }
 }
 
-Describe 'Import-SESCredentials' -Tag 'Private' {
+Describe 'Import-SESCredential' -Tag 'Private' {
     BeforeAll {
         Mock -CommandName 'Get-SESCredentialPath' -MockWith {
             return '/mock/path/ses-credentials.xml'
@@ -374,7 +382,7 @@ Describe 'Import-SESCredentials' -Tag 'Private' {
     Context 'Successful Import' {
         It 'Should import credentials from correct path' {
             InModuleScope -ScriptBlock {
-                $result = Import-SESCredentials
+                $result = Import-SESCredential
                 $result | Should -Not -BeNullOrEmpty
                 $result.ClientId | Should -Be 'stored-client-id'
             }
@@ -388,7 +396,7 @@ Describe 'Import-SESCredentials' -Tag 'Private' {
             Mock -CommandName 'Test-Path' -MockWith { $false } -ModuleName $script:dscModuleName
 
             InModuleScope -ScriptBlock {
-                $result = Import-SESCredentials
+                $result = Import-SESCredential
                 $result | Should -BeNullOrEmpty
             }
         }
@@ -399,14 +407,14 @@ Describe 'Import-SESCredentials' -Tag 'Private' {
             } -ModuleName $script:dscModuleName
 
             InModuleScope -ScriptBlock {
-                $result = Import-SESCredentials
+                $result = Import-SESCredential
                 $result | Should -BeNullOrEmpty
             }
         }
     }
 }
 
-Describe 'Export-SESCredentials' -Tag 'Private' {
+Describe 'Export-SESCredential' -Tag 'Private' {
     BeforeAll {
         Mock -CommandName 'Get-SESCredentialPath' -MockWith {
             return '/mock/path/ses-credentials.xml'
@@ -418,7 +426,7 @@ Describe 'Export-SESCredentials' -Tag 'Private' {
     Context 'Successful Export' {
         It 'Should export credentials to correct path' {
             InModuleScope -ScriptBlock {
-                Export-SESCredentials -ClientId 'test-client' -ClientSecret 'test-secret' -Region 'us'
+                Export-SESCredential -ClientId 'test-client' -ClientSecret 'test-secret' -Region 'us'
             }
 
             Should -Invoke -CommandName 'Export-Clixml' -ParameterFilter {
@@ -429,7 +437,7 @@ Describe 'Export-SESCredentials' -Tag 'Private' {
 
         It 'Should create credential object with all required properties' {
             InModuleScope -ScriptBlock {
-                Export-SESCredentials -ClientId 'test-client' -ClientSecret 'test-secret' -Region 'us'
+                Export-SESCredential -ClientId 'test-client' -ClientSecret 'test-secret' -Region 'us'
             }
 
             Should -Invoke -CommandName 'Export-Clixml' -ParameterFilter {
@@ -446,7 +454,7 @@ Describe 'Export-SESCredentials' -Tag 'Private' {
             } -ModuleName $script:dscModuleName
 
             InModuleScope -ScriptBlock {
-                { Export-SESCredentials -ClientId 'test-client' -ClientSecret 'test-secret' } | Should -Throw
+                { Export-SESCredential -ClientId 'test-client' -ClientSecret 'test-secret' } | Should -Throw
             }
         }
     }

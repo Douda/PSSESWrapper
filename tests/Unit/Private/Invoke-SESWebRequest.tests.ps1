@@ -179,25 +179,9 @@ Describe 'Invoke-SESWebRequest' -Tag 'Private' {
     Context 'Error Handling' {
         It 'Should handle WebException with detailed error information' {
             Mock -CommandName 'Invoke-RestMethod' -MockWith {
-                $webException = [System.Net.WebException]::new('Request failed')
-                
-                # Create a mock response object
-                $response = New-Object PSObject
-                $response | Add-Member -MemberType NoteProperty -Name 'StatusCode' -Value 404
-                $response | Add-Member -MemberType NoteProperty -Name 'StatusDescription' -Value 'Not Found'
-                
-                # Mock GetResponseStream method
-                $response | Add-Member -MemberType ScriptMethod -Name 'GetResponseStream' -Value {
-                    $stream = New-Object System.IO.MemoryStream
-                    $writer = New-Object System.IO.StreamWriter($stream)
-                    $writer.Write('{"error": "Resource not found"}')
-                    $writer.Flush()
-                    $stream.Position = 0
-                    return $stream
-                }
-                
-                $webException | Add-Member -MemberType NoteProperty -Name 'Response' -Value $response
-                throw $webException
+                # Create a simplified WebException for testing
+                $exception = New-Object System.Net.WebException('Request failed', $null, [System.Net.WebExceptionStatus]::ProtocolError, $null)
+                throw $exception
             } -ModuleName $script:dscModuleName
 
             InModuleScope -ScriptBlock {

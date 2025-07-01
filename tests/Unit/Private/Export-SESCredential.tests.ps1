@@ -19,13 +19,12 @@ AfterAll {
 
 Describe 'Export-SESCredential' -Tag 'Private' {
     BeforeAll {
-        InModuleScope -ScriptBlock {
-            # Mock dependencies
-            Mock Export-Clixml {}
-            Mock Get-SESCredentialPath { return 'TestDrive:\creds.xml' }
-            Mock New-Item {}
-            Mock Split-Path { return 'TestDrive:' }
-        }
+        # Mock dependencies at module level
+        Mock -CommandName 'Export-Clixml' -MockWith { } -ModuleName $script:dscModuleName
+        Mock -CommandName 'Get-SESCredentialPath' -MockWith { return 'TestDrive:/creds.xml' } -ModuleName $script:dscModuleName
+        Mock -CommandName 'New-Item' -MockWith { } -ModuleName $script:dscModuleName
+        Mock -CommandName 'Split-Path' -MockWith { return 'TestDrive:' } -ModuleName $script:dscModuleName
+        Mock -CommandName 'Test-Path' -MockWith { return $true } -ModuleName $script:dscModuleName
     }
 
     Context 'When exporting credentials successfully' {
@@ -40,14 +39,14 @@ Describe 'Export-SESCredential' -Tag 'Private' {
                 Export-SESCredential -Credentials $testCredentials
                 
                 Should -Invoke Export-Clixml -Exactly 1 -ParameterFilter {
-                    $Path -eq 'TestDrive:\creds.xml'
+                    $Path -eq 'TestDrive:/creds.xml'
                 }
             }
         }
 
         It 'Should create directory if it does not exist' {
             InModuleScope -ScriptBlock {
-                Mock Test-Path { return $false }
+                Mock -CommandName 'Test-Path' -MockWith { return $false } -ModuleName $script:dscModuleName
                 
                 $testCredentials = @{
                     ClientId = 'test-client-id'
@@ -67,7 +66,7 @@ Describe 'Export-SESCredential' -Tag 'Private' {
     Context 'When handling errors' {
         It 'Should handle export errors gracefully' {
             InModuleScope -ScriptBlock {
-                Mock Export-Clixml { throw 'Export failed' }
+                Mock -CommandName 'Export-Clixml' -MockWith { throw 'Export failed' } -ModuleName $script:dscModuleName
                 
                 $testCredentials = @{
                     ClientId = 'test-client-id'

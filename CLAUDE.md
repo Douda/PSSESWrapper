@@ -302,181 +302,33 @@ Authentication credentials are stored in `CLAUDE-CREDENTIALS.md` (excluded from 
 
 ## Development Plan & Progress Tracking
 
-### Phase 0: Environment Validation & CI/CD Setup (Ubuntu WSL) ✅ COMPLETED
-- [x] ✅ Verify PowerShell 7.5.1 or later is installed and working
-- [x] ✅ Confirm Git 2.43.0 or later is available for version control
-- [x] Install .NET SDK 8.0.117 for GitVersion dependency
-- [x] Install GitVersion 5.12.0 as global tool (version 5.x to avoid v6 breaking changes)
-- [x] Verify GitVersion configuration and functionality for proper module versioning
-- [x] Initialize/switch to "dev" branch for development
-- [x] **Initial Commit: Create project baseline snapshot (excluding credentials)**
-- [x] Configure GitHub Actions CI/CD pipeline for multi-platform testing:
-  - [x] Ubuntu (PowerShell 7.x) - for development validation
-  - [x] Windows (PowerShell 5.1) - for compatibility validation
-  - [x] Windows (PowerShell 7.x) - for cross-version validation
-- [x] Test build.ps1 script execution in WSL environment (✅ Build successful)
-- [x] Validate Pester testing framework availability (✅ 44 tests passed, 100% coverage)
-- [x] Test live API connection using provided credentials (Linux) - ✅ **COMPLETED (EU region)**
-- [x] Update CLAUDE.md with WSL-specific development notes
-- [x] Create CLAUDE-IN-PROGRESS.md tracking file
-- [x] **Commit: "Initialize development environment and CI/CD pipeline"**
+**📋 Complete development plan and progress tracking has been moved to [`CLAUDE-IN-PROGRESS.md`](./CLAUDE-IN-PROGRESS.md)**
 
-### Phase 1: Foundation Setup + Cross-Platform Testing
-- [x] Implement core request handling infrastructure:
-  - [x] Create Submit-SESRequest function (similar to Rubrik's Submit-Request.ps1)
-  - [x] Create Invoke-SESWebRequest function for cross-platform HTTP calls
-  - [x] Implement comprehensive error handling and response processing
-- [x] Implement core authentication module (Connect-SESService, Disconnect-SESService, Test-SESConnection)
-  - [x] Create global connection object for session management
-  - [x] Support multiple authentication methods (credentials, tokens)
-- [x] Test authentication against live SES API (Linux validation) ✅ **SUCCESS**
-- [ ] Trigger CI/CD pipeline to validate Windows PowerShell 5.1 compatibility
-- [x] **Commit: "Add core authentication functions with cross-platform validation"**
-- [x] Set up secure credential storage system with regional support
-- [ ] CI/CD validation on Windows PowerShell 5.1
-- [x] **Commit: "Implement secure credential storage with Windows PS 5.1 support"**
-- [x] Create base API communication framework with helper functions:
-  - [x] Date/time conversion utilities
-  - [x] JSON formatting functions
-  - [x] Response transformation helpers
-- [ ] Full CI/CD pipeline validation (Linux PS7, Windows PS5.1, Windows PS7)
-- [x] **Commit: "Add base API communication framework with full cross-platform support"**
+This includes:
+- **Phase 0**: Environment Validation & CI/CD Setup ✅ **COMPLETED**
+- **Phase 1**: Foundation Setup + Cross-Platform Testing ✅ **COMPLETED**  
+- **Phase 1.5**: CI/CD Pipeline Stabilization ⏳ **IN PROGRESS**
+- **Phase 2**: Core API Wrappers + Multi-Platform Validation
+- **Phase 3**: Testing & Quality + Comprehensive Platform Testing
+- **Phase 4**: Finalization + Production Readiness
+- **PowerShell Approved Verb Commands**: Complete function reference list
 
-### Phase 2: Core API Wrappers + Multi-Platform Validation
-- [ ] Create centralized API data repository function (Get-SESAPIData) following template pattern
-- [ ] Develop device management functions with Rubrik-inspired patterns:
-  - [ ] Implement multiple parameter sets (ID, Name, Filter)
-  - [ ] Add comprehensive parameter validation and aliases
-  - [ ] Linux testing with live API
-  - [ ] Verify pagination handling for large datasets
-  - [ ] CI/CD pipeline validation on Windows PowerShell 5.1
-  - [ ] **Commit: "Add device management functions with Windows PS 5.1 compatibility"**
-- [ ] Implement policy management functions:
-  - [ ] Use Begin/Process/End blocks for pipeline support
-  - [ ] Implement verbose logging and error handling
-  - [ ] Linux live API validation
-  - [ ] Test pagination scenarios (single page, multiple pages, empty results)
-  - [ ] CI/CD Windows PowerShell 5.1 validation
-  - [ ] **Commit: "Add policy management functions with cross-platform support"**
-- [ ] Create threat intelligence functions:
-  - [ ] Apply consistent parameter patterns across all functions
-  - [ ] Implement proper object type definitions
-  - [ ] Linux live API testing
-  - [ ] Validate pagination handling with live data
-  - [ ] CI/CD multi-platform validation
-  - [ ] **Commit: "Add threat intelligence functions with full platform support"**
+**Current Status**: Working on Phase 1.5 - CI/CD Pipeline Stabilization (fixing 69 failing unit tests)
 
-### Phase 3: Testing & Quality + Comprehensive Platform Testing
-- [ ] Write comprehensive Pester tests for all functions
-- [ ] Create specific Pester tests for pagination handling:
-  - [ ] Test single page responses
-  - [ ] Test multi-page responses with proper data aggregation
-  - [ ] Test empty result sets
-  - [ ] Test pagination edge cases (last page, offset boundaries)
-- [ ] Create CI/CD jobs that run tests on all platforms:
-  - [ ] Live API integration tests (Linux)
-  - [ ] Pagination tests with live API data
-  - [ ] Compatibility tests (Windows PowerShell 5.1)
-  - [ ] Feature tests (Windows PowerShell 7.x)
-- [ ] **Commit: "Add comprehensive test suite with multi-platform CI/CD validation"**
-- [ ] Implement error handling and retry logic
-- [ ] Validate error handling across all platforms via CI/CD
-- [ ] **Commit: "Enhance error handling with cross-platform compatibility"**
+### 🔄 **Synchronization Requirements**
 
-### Phase 4: Finalization + Production Readiness
-- [ ] Final end-to-end testing:
-  - [ ] Linux development environment
-  - [ ] CI/CD pipeline validation on Windows PowerShell 5.1 & 7.x
-- [ ] Update module manifest and documentation
-- [ ] **Commit: "Complete PSSESWrapper v1.0 with full cross-platform support"**
+**⚠️ IMPORTANT**: When major phase status changes occur (phase completion, major milestones), both files must be updated:
 
-### Development Flow Notes
-- Start with initial commit to "dev" branch containing complete project baseline (credentials excluded via .gitignore)
-- Develop on Linux/WSL with PowerShell 7.5.1
-- Validate locally with live API
-- Commit to "dev" branch after each validated step
-- CI/CD automatically tests Windows PowerShell 5.1 & 7.x compatibility
-- Only proceed to next phase after CI/CD passes
+1. **CLAUDE-IN-PROGRESS.md** (Primary): Update detailed progress, checkboxes, and status
+2. **CLAUDE.md** (Summary): Update the phase status summary above to reflect:
+   - Phase completion status (✅ COMPLETED, ⏳ IN PROGRESS, ❌ BLOCKED)
+   - Current phase description
+   - Overall project status
 
-### PowerShell Approved Verb Commands (Based on PSSEPCloud Analysis)
+**Major Change Examples**:
+- Phase completion (e.g., Phase 1.5 ✅ COMPLETED)
+- Phase transitions (e.g., moving from Phase 1.5 to Phase 2)
+- Project status changes (e.g., project completion, major blockers)
+- Milestone achievements (e.g., "CI/CD pipeline stabilized", "Live API integration complete")
 
-#### Authentication & Connection
-- [x] `Connect-SESService`
-- [ ] `Disconnect-SESService`
-- [ ] `Test-SESConnection`
-- [ ] `Clear-SESAuthentication`
-- [ ] `Get-SESToken`
-- [ ] `Set-SESRegion`
-
-#### Device Management
-- [ ] `Get-SESDevice`
-- [ ] `Get-SESDeviceDetails`
-- [ ] `Get-SESDeviceGroup`
-- [ ] `Move-SESDevice`
-- [ ] `Start-SESFullScan`
-- [ ] `Start-SESQuickScan`
-- [ ] `Start-SESDefinitionUpdate`
-- [ ] `Invoke-SESDeviceCommand`
-- [ ] `Set-SESDeviceGroup`
-- [ ] `Remove-SESDevice`
-
-#### Policy Management
-- [ ] `Get-SESPolicy`
-- [ ] `Get-SESPolicyDetails`
-- [ ] `Get-SESPoliciesSummary`
-- [ ] `Get-SESGroup`
-- [ ] `Get-SESGroupPolicies`
-- [ ] `Set-SESPolicy`
-- [ ] `New-SESPolicy`
-- [ ] `Remove-SESPolicy`
-- [ ] `Update-SESAllowListPolicyByFileHash`
-- [ ] `Update-SESAllowListPolicyByFileName`
-
-#### Threat Intelligence & Protection
-- [ ] `Get-SESThreatIntelCveProtection`
-- [ ] `Get-SESThreatIntelFileInsight`
-- [ ] `Get-SESThreatIntelFileProcessChain`
-- [ ] `Get-SESThreatIntelFileProtection`
-- [ ] `Get-SESThreatIntelFileRelated`
-- [ ] `Get-SESThreatIntelNetworkInsight`
-- [ ] `Get-SESThreatIntelNetworkProtection`
-
-#### Incident & Event Management
-- [ ] `Get-SESIncidents`
-- [ ] `Get-SESIncidentDetails`
-- [ ] `Get-SESEvents`
-
-#### File & Hash Management
-- [ ] `Block-SESFile`
-- [ ] `Get-SESFileHashDetails`
-
-#### System & Configuration
-- [ ] `Get-SESComponentType`
-- [ ] `Get-SESEDRDumpsList`
-- [ ] `Get-SESTargetRules`
-- [ ] `Get-SESFeatureList`
-
-#### Additional Commands (Gaps Identified)
-- [ ] `Export-SESReport`
-- [ ] `New-SESIncidentResponse`
-- [ ] `Update-SESDeviceConfiguration`
-- [ ] `Disable-SESThreat`
-- [ ] `Enable-SESThreat`
-- [ ] `Invoke-SESQuarantine`
-- [ ] `Remove-SESQuarantine`
-- [ ] `Get-SESComplianceReport`
-- [ ] `Export-SESDeviceInventory`
-- [ ] `Get-SESAuditLog`
-- [ ] `Set-SESNotificationSettings`
-- [ ] `Get-SESHealthStatus`
-- [ ] `Test-SESConnectivity`
-- [ ] `Backup-SESConfiguration`
-- [ ] `Restore-SESConfiguration`
-
-#### Utility Functions
-- [ ] `Import-SESConfiguration`
-- [ ] `Export-SESConfiguration`
-- [ ] `ConvertTo-SESQuery`
-- [ ] `Format-SESResponse`
-- [ ] `ConvertFrom-SESDate`
-- [ ] `ConvertTo-SESDate`
+**Synchronization Rule**: No phase can be marked as complete in either file until both files reflect the same completion status.
