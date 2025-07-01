@@ -132,22 +132,26 @@ function Connect-SESService {
 
                 Write-Verbose "Connecting to SES API at: $($Global:SESConnection.BaseUri)"
 
-                # Prepare authentication request
+                # Prepare authentication request (SES API uses Basic Auth header method)
                 $authUri = "$($Global:SESConnection.BaseUri)/v1/oauth2/tokens"
-                $authBody = @{
-                    client_id = $ClientId
-                    client_secret = $ClientSecret
-                    grant_type = 'client_credentials'
-                } | ConvertTo-Json
+                
+                # Create Basic Authentication header as per SES API documentation
+                $authString = "$ClientId`:$ClientSecret"
+                $encodedAuth = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes($authString))
+                $authHeader = "Basic $encodedAuth"
 
                 Write-Verbose "Requesting OAuth2 token from: $authUri"
 
-                # Make authentication request
+                # Make authentication request using Basic Auth header (following PSSEPCloud pattern)
                 $splat = @{
                     Uri = $authUri
                     Method = 'POST'
-                    Body = $authBody
-                    ContentType = 'application/json'
+                    Headers = @{
+                        'Host' = ($authUri -replace 'https://', '' -replace '/.*', '')
+                        'Accept' = 'application/json'
+                        'Authorization' = $authHeader
+                    }
+                    UseBasicParsing = $true
                     TimeoutSec = $Global:SESConnection.TimeoutSec
                 }
 

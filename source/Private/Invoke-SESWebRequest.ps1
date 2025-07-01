@@ -60,7 +60,7 @@ function Invoke-SESWebRequest {
         [string]$Body,
 
         [Parameter(Mandatory = $false, HelpMessage = "The content type for the request")]
-        [string]$ContentType = 'application/json',
+        [string]$ContentType,
 
         [Parameter(Mandatory = $false, HelpMessage = "Request timeout in seconds")]
         [int]$TimeoutSec = 30,
@@ -87,11 +87,15 @@ function Invoke-SESWebRequest {
         try {
             # Build the parameter hashtable for Invoke-RestMethod
             $splat = @{
-                Uri         = $Uri
-                Method      = $Method
-                Headers     = $Headers
-                ContentType = $ContentType
-                TimeoutSec  = $TimeoutSec
+                Uri        = $Uri
+                Method     = $Method
+                Headers    = $Headers
+                TimeoutSec = $TimeoutSec
+            }
+
+            # Add ContentType only if specified
+            if ($ContentType) {
+                $splat['ContentType'] = $ContentType
             }
 
             # Add body if provided
