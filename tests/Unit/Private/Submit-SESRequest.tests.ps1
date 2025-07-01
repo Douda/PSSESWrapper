@@ -207,7 +207,7 @@ Describe 'Submit-SESRequest' -Tag 'Private' {
             } -ModuleName $script:dscModuleName
 
             InModuleScope -ScriptBlock {
-                { Submit-SESRequest -Uri 'https://api.test.com/devices' -RetryCount 3 } | Should -Throw
+                { Submit-SESRequest -Uri 'https://api.test.com/devices' -RetryCount 3 } | Should -Throw -ExpectedMessage '*Client error*'
             }
 
             Should -Invoke -CommandName 'Invoke-SESWebRequest' -Times 1 -Exactly
@@ -258,7 +258,7 @@ Describe 'Submit-SESRequest' -Tag 'Private' {
             } -ModuleName $script:dscModuleName
 
             InModuleScope -ScriptBlock {
-                { Submit-SESRequest -Uri 'https://api.test.com/devices' -RetryCount 5 } | Should -Throw
+                { Submit-SESRequest -Uri 'https://api.test.com/devices' -RetryCount 5 } | Should -Throw -ExpectedMessage '*Server error*'
             }
 
             Should -Invoke -CommandName 'Invoke-SESWebRequest' -Times 5 -Exactly

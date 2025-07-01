@@ -179,13 +179,27 @@ Describe 'Invoke-SESWebRequest' -Tag 'Private' {
     Context 'Error Handling' {
         It 'Should handle WebException with detailed error information' {
             Mock -CommandName 'Invoke-RestMethod' -MockWith {
-                # Create a simplified WebException for testing
-                $exception = New-Object System.Net.WebException('Request failed', $null, [System.Net.WebExceptionStatus]::ProtocolError, $null)
-                throw $exception
+                # Create a mock WebResponse object
+                $mockResponse = New-Object -TypeName PSObject -Property @{
+                    StatusCode        = [System.Net.HttpStatusCode]::NotFound
+                    StatusDescription = 'Not Found'
+                    GetResponseStream = {
+                        $mockStream = New-Object System.IO.MemoryStream
+                        $writer = New-Object System.IO.StreamWriter($mockStream)
+                        $writer.Write('{"error": "resource not found"}')
+                        $writer.Flush()
+                        $mockStream.Position = 0
+                        return $mockStream
+                    }
+                }
+
+                # Create a WebException with the mock response
+                $webException = New-Object System.Net.WebException('Request failed', $null, [System.Net.WebExceptionStatus]::ProtocolError, $mockResponse)
+                throw $webException
             } -ModuleName $script:dscModuleName
 
             InModuleScope -ScriptBlock {
-                { Invoke-SESWebRequest -Uri 'https://api.test.com/nonexistent' } | Should -Throw
+                { Invoke-SESWebRequest -Uri 'https://api.test.com/nonexistent' } | Should -Throw -ExpectedMessage '*Web request failed*'
             }
         }
 
@@ -195,7 +209,7 @@ Describe 'Invoke-SESWebRequest' -Tag 'Private' {
             } -ModuleName $script:dscModuleName
 
             InModuleScope -ScriptBlock {
-                { Invoke-SESWebRequest -Uri 'https://api.test.com/endpoint' } | Should -Throw
+                { Invoke-SESWebRequest -Uri 'https://api.test.com/endpoint' } | Should -Throw -ExpectedMessage '*General error occurred*'
             }
         }
 
@@ -205,7 +219,7 @@ Describe 'Invoke-SESWebRequest' -Tag 'Private' {
             } -ModuleName $script:dscModuleName
 
             InModuleScope -ScriptBlock {
-                { Invoke-SESWebRequest -Uri 'https://api.test.com/slow-endpoint' } | Should -Throw
+                { Invoke-SESWebRequest -Uri 'https://api.test.com/slow-endpoint' } | Should -Throw -ExpectedMessage '*Request timed out*'
             }
         }
     }

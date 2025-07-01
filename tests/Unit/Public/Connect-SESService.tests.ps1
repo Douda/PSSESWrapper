@@ -19,27 +19,6 @@ AfterAll {
 
 Describe 'Connect-SESService' -Tag 'Public' {
     BeforeAll {
-        # Mock the dependencies - Initialize connection with proper setup
-        Mock -CommandName 'Initialize-SESConnection' -MockWith {
-            if (-not $Global:SESConnection) {
-                $Global:SESConnection = @{}
-            }
-            $Global:SESConnection.IsConnected = $false
-            $Global:SESConnection.AuthToken = $null
-            $Global:SESConnection.BaseUri = $null
-            $Global:SESConnection.Region = $null
-            $Global:SESConnection.RegionalEndpoints = @{
-                'us' = 'https://api.sep.securitycloud.symantec.com'
-                'eu' = 'https://api.sep.eu.securitycloud.symantec.com'
-                'in' = 'https://api.sep.in.securitycloud.symantec.com'
-            }
-            $Global:SESConnection.TimeoutSec = 30
-            $Global:SESConnection.TokenExpiry = $null
-            $Global:SESConnection.RefreshToken = $null
-            $Global:SESConnection.ClientId = $null
-            $Global:SESConnection.ConnectedAt = $null
-        } -ModuleName $script:dscModuleName
-
         Mock -CommandName 'Invoke-SESWebRequest' -MockWith {
             return @{
                 access_token = 'mock-access-token-12345'
@@ -71,7 +50,7 @@ Describe 'Connect-SESService' -Tag 'Public' {
     BeforeEach {
         InModuleScope -ScriptBlock {
             # Reset global connection before each test
-            Remove-Variable -Name 'SESConnection' -Scope Global -Force -ErrorAction SilentlyContinue
+            Reset-SESConnection
         }
     }
 
@@ -128,27 +107,7 @@ Describe 'Connect-SESService' -Tag 'Public' {
     Context 'Credential Parameter Sets' {
         It 'Should use provided credentials when specified' {
             # Ensure connection is not connected for this test
-            Mock -CommandName 'Initialize-SESConnection' -MockWith {
-                if (-not $Global:SESConnection) {
-                    $Global:SESConnection = @{}
-                }
-                $Global:SESConnection.IsConnected = $false
-                $Global:SESConnection.AuthToken = $null
-                $Global:SESConnection.BaseUri = $null
-                $Global:SESConnection.Region = $null
-                $Global:SESConnection.RegionalEndpoints = @{
-                    'us' = 'https://api.sep.securitycloud.symantec.com'
-                    'eu' = 'https://api.sep.eu.securitycloud.symantec.com'
-                    'in' = 'https://api.sep.in.securitycloud.symantec.com'
-                }
-                $Global:SESConnection.TimeoutSec = 30
-                $Global:SESConnection.TokenExpiry = $null
-                $Global:SESConnection.RefreshToken = $null
-                $Global:SESConnection.ClientId = $null
-                $Global:SESConnection.ConnectedAt = $null
-            } -ModuleName $script:dscModuleName
-
-            InModuleScope -ScriptBlock {
+InModuleScope -ScriptBlock {
                 $result = Connect-SESService -ClientId 'test-client' -ClientSecret 'test-secret' -Region 'us'
                 $result | Should -Not -BeNullOrEmpty
             }
@@ -161,27 +120,7 @@ Describe 'Connect-SESService' -Tag 'Public' {
 
         It 'Should use stored credentials when UseStoredCredentials is specified' {
             # Ensure connection is not connected for this test
-            Mock -CommandName 'Initialize-SESConnection' -MockWith {
-                if (-not $Global:SESConnection) {
-                    $Global:SESConnection = @{}
-                }
-                $Global:SESConnection.IsConnected = $false
-                $Global:SESConnection.AuthToken = $null
-                $Global:SESConnection.BaseUri = $null
-                $Global:SESConnection.Region = $null
-                $Global:SESConnection.RegionalEndpoints = @{
-                    'us' = 'https://api.sep.securitycloud.symantec.com'
-                    'eu' = 'https://api.sep.eu.securitycloud.symantec.com'
-                    'in' = 'https://api.sep.in.securitycloud.symantec.com'
-                }
-                $Global:SESConnection.TimeoutSec = 30
-                $Global:SESConnection.TokenExpiry = $null
-                $Global:SESConnection.RefreshToken = $null
-                $Global:SESConnection.ClientId = $null
-                $Global:SESConnection.ConnectedAt = $null
-            } -ModuleName $script:dscModuleName
-
-            InModuleScope -ScriptBlock {
+InModuleScope -ScriptBlock {
                 $result = Connect-SESService -UseStoredCredentials
                 $result | Should -Not -BeNullOrEmpty
             }
@@ -203,27 +142,7 @@ Describe 'Connect-SESService' -Tag 'Public' {
     Context 'Authentication Process' {
         It 'Should make OAuth2 token request with correct parameters' {
             # Ensure connection is not connected for this test
-            Mock -CommandName 'Initialize-SESConnection' -MockWith {
-                if (-not $Global:SESConnection) {
-                    $Global:SESConnection = @{}
-                }
-                $Global:SESConnection.IsConnected = $false
-                $Global:SESConnection.AuthToken = $null
-                $Global:SESConnection.BaseUri = $null
-                $Global:SESConnection.Region = $null
-                $Global:SESConnection.RegionalEndpoints = @{
-                    'us' = 'https://api.sep.securitycloud.symantec.com'
-                    'eu' = 'https://api.sep.eu.securitycloud.symantec.com'
-                    'in' = 'https://api.sep.in.securitycloud.symantec.com'
-                }
-                $Global:SESConnection.TimeoutSec = 30
-                $Global:SESConnection.TokenExpiry = $null
-                $Global:SESConnection.RefreshToken = $null
-                $Global:SESConnection.ClientId = $null
-                $Global:SESConnection.ConnectedAt = $null
-            } -ModuleName $script:dscModuleName
-
-            InModuleScope -ScriptBlock {
+InModuleScope -ScriptBlock {
                 Connect-SESService -ClientId 'test-client' -ClientSecret 'test-secret' -Region 'us'
             }
 
@@ -288,18 +207,7 @@ Describe 'Connect-SESService' -Tag 'Public' {
             }
 
             # Override the BeforeAll mock for Initialize-SESConnection to preserve existing connection
-            Mock -CommandName 'Initialize-SESConnection' -MockWith {
-                # Don't modify existing connection if Force is not specified
-                if (-not $Force -and $Global:SESConnection.IsConnected) {
-                    # Preserve existing connection state
-                    return
-                }
-                # Otherwise use default initialization
-                if (-not $Global:SESConnection) {
-                    $Global:SESConnection = @{}
-                }
-                $Global:SESConnection.IsConnected = $false
-            } -ModuleName $script:dscModuleName
+            
             
             # Ensure Invoke-SESWebRequest is not called for existing connection
             Mock -CommandName 'Invoke-SESWebRequest' -MockWith {
@@ -320,19 +228,7 @@ Describe 'Connect-SESService' -Tag 'Public' {
         }
 
         It 'Should force new connection when Force is specified' {
-            Mock -CommandName 'Initialize-SESConnection' -MockWith {
-                if (-not $Global:SESConnection) {
-                    $Global:SESConnection = @{}
-                }
-                $Global:SESConnection.IsConnected = $true
-                $Global:SESConnection.AuthToken = 'existing-token'
-                $Global:SESConnection.RegionalEndpoints = @{
-                    'us' = 'https://api.sep.securitycloud.symantec.com'
-                }
-                $Global:SESConnection.TimeoutSec = 30
-            } -ModuleName $script:dscModuleName
-
-            InModuleScope -ScriptBlock {
+InModuleScope -ScriptBlock {
                 $result = Connect-SESService -ClientId 'test-client' -ClientSecret 'test-secret' -Force
                 $result.AuthToken | Should -Be 'mock-access-token-12345'
             }
