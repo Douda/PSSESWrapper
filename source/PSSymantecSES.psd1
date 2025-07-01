@@ -94,6 +94,18 @@ PrivateData = @{
 
     PSData = @{
 
+        FunctionsToProcess = @(
+            'Export-SESCredential',
+            'Get-PrivateFunction',
+            'Get-SESCredentialPath',
+            'Import-SESCredential',
+            'Initialize-SESConnection',
+            'Invoke-SESWebRequest',
+            'Reset-SESConnection',
+            'Submit-SESRequest',
+            'Update-SESConnectionActivity'
+        )
+
         # Tags applied to this module. These help with module discovery in online galleries.
         # Tags = @()
 
